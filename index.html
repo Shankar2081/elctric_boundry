@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Electric Boundary Condition Simulation</title>
+  <title>Electric and Magnetic Field Wave Plot</title>
   <style>
     canvas {
       border: 1px solid black;
-      margin-top: 20px;
       display: block;
+      margin-top: 20px;
     }
     .controls {
-      margin-top: 20px;
       font-family: Arial, sans-serif;
+      margin-top: 20px;
     }
     label {
       margin-right: 10px;
@@ -21,82 +21,80 @@
 </head>
 <body>
 
-  <h1>Electric Boundary Condition Simulation</h1>
-  
+  <h1>Electric and Magnetic Field Wave Plot</h1>
+
   <div class="controls">
-    <label for="eps1">Dielectric 1 (ε₁):</label>
-    <input type="number" id="eps1" value="2" step="0.1" min="1">
-    
-    <label for="eps2">Dielectric 2 (ε₂):</label>
-    <input type="number" id="eps2" value="4" step="0.1" min="1">
-    
-    <button onclick="updateSimulation()">Update Simulation</button>
+    <label for="frequency">Frequency (Hz):</label>
+    <input type="number" id="frequency" value="1" step="0.1" min="0.1">
+
+    <label for="amplitude">Amplitude (units):</label>
+    <input type="number" id="amplitude" value="50" step="1" min="1">
+
+    <button onclick="updatePlot()">Update Plot</button>
   </div>
 
-  <canvas id="canvas" width="600" height="400"></canvas>
+  <canvas id="canvas" width="800" height="400"></canvas>
 
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    // Default dielectric constants
-    let eps1 = 2;
-    let eps2 = 4;
+    let frequency = 1;  // Frequency of the wave
+    let amplitude = 50; // Amplitude of the electric and magnetic field
 
-    // Function to draw the electric field lines
-    function drawFieldLines() {
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      const radius = 80; // Distance from center where field lines start
-      const fieldStrength1 = eps1; // Relative permittivity (dielectric constant) for region 1
-      const fieldStrength2 = eps2; // Relative permittivity (dielectric constant) for region 2
+    // Function to plot the electric and magnetic fields as waves
+    function drawFields() {
+      const width = canvas.width;
+      const height = canvas.height;
 
       // Clear the canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, width, height);
 
-      // Draw the boundary between the two dielectric regions
-      const boundaryX = centerX;
+      // Time and wave parameters
+      const time = Date.now() / 1000;  // Current time in seconds (for animation)
+      const k = 2 * Math.PI * frequency;  // Wave number
+      const omega = 2 * Math.PI * frequency;  // Angular frequency
+
+      // Draw Electric Field (E) - Sinusoidal Wave
       ctx.beginPath();
-      ctx.moveTo(boundaryX, 0);
-      ctx.lineTo(boundaryX, canvas.height);
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#FF5733'; // Electric field color (red)
+      for (let x = 0; x < width; x++) {
+        const y = height / 2 + amplitude * Math.sin(k * x / width - omega * time);
+        if (x === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
       ctx.stroke();
 
-      // Draw the field lines in dielectric 1
+      // Draw Magnetic Field (B) - Cosine Wave (perpendicular to E)
       ctx.beginPath();
-      ctx.moveTo(centerX - radius, centerY); // Start point in dielectric 1
-      for (let i = 0; i < 12; i++) {
-        let angle = (i * Math.PI) / 6;
-        let x = centerX + fieldStrength1 * Math.cos(angle) * 30;
-        let y = centerY + fieldStrength1 * Math.sin(angle) * 30;
-        ctx.lineTo(x, y);
+      ctx.strokeStyle = '#33CFFF'; // Magnetic field color (blue)
+      for (let x = 0; x < width; x++) {
+        const y = height / 2 + amplitude * Math.cos(k * x / width - omega * time);
+        if (x === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
       }
-      ctx.strokeStyle = '#FF5733'; // Electric field color for dielectric 1
-      ctx.stroke();
-
-      // Draw the field lines in dielectric 2
-      ctx.beginPath();
-      ctx.moveTo(centerX + radius, centerY); // Start point in dielectric 2
-      for (let i = 0; i < 12; i++) {
-        let angle = (i * Math.PI) / 6;
-        let x = centerX + fieldStrength2 * Math.cos(angle) * 30;
-        let y = centerY + fieldStrength2 * Math.sin(angle) * 30;
-        ctx.lineTo(x, y);
-      }
-      ctx.strokeStyle = '#33CFFF'; // Electric field color for dielectric 2
       ctx.stroke();
     }
 
-    // Function to update dielectric constants and redraw simulation
-    function updateSimulation() {
-      eps1 = parseFloat(document.getElementById('eps1').value);
-      eps2 = parseFloat(document.getElementById('eps2').value);
-      drawFieldLines();
+    // Function to update the plot based on user input
+    function updatePlot() {
+      frequency = parseFloat(document.getElementById('frequency').value);
+      amplitude = parseFloat(document.getElementById('amplitude').value);
+      drawFields();
     }
 
-    // Initial draw
-    drawFieldLines();
+    // Initial drawing
+    drawFields();
+
+    // Continuous updating for animation
+    setInterval(drawFields, 30); // Redraw every 30 ms for smooth animation
+
   </script>
 
 </body>
